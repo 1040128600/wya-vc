@@ -30,7 +30,7 @@
 				</button>
 			</vc-editor-toolbar>
 		</slot>
-		<div ref="editor" />
+		<div ref="editor"/>
 	</div>
 </template>
 
@@ -44,7 +44,6 @@ import ImgsPreview from '../imgs-preview/index';
 import defaultOptinos from './default-options';
 import { VcInstance } from '../vc/index';
 import { registVideoBlot } from './extends/video-blot';
-import ImageExtend from './extends/image-extend';
 
 export default {
 	name: "vc-editor",
@@ -136,15 +135,12 @@ export default {
 	methods: {
 		init() {
 			registVideoBlot(this.Quill);
-			this.Quill.register('modules/ImageExtend', ImageExtend);
 			this.initFontSize();
 			this.editor = new this.Quill(this.$refs.editor, { ...defaultOptinos, ...this.options });
 			this.editor.enable(!this.disabled);
 			if (this.value) {
 				this.editor.setText('');
 				this.editor.clipboard.dangerouslyPasteHTML(this.value);
-				let length = this.editor.getLength();
-				this.editor.setSelection(length + 1); // 光标位置
 			}
 			
 			this.editor.on('selection-change', range => {
@@ -167,7 +163,6 @@ export default {
 				this.dispatch('vc-form-item', 'form-change', this.content);
 			});
 		},
-
 		initFontSize() {
 			const fontSize = ['12px', '14px', '16px', '18px', '20px', '22px', '24px', '50px'];
 			let Parchment = this.Quill.import('parchment');
@@ -241,17 +236,8 @@ export default {
 			let { ImageBlot, Parchment } = this;
 			let image = Parchment.find(e.target);
 			if (image instanceof ImageBlot) {
-				// 多图预览
+				// TODO 多图预览
 				// let imgs = this.getImgs();
-				let index;
-				let imgsArr = Array.from(document.querySelectorAll('.ql-container img'));
-				let allImgUrls = imgsArr.map((it, idx) => {
-					if (it === e.target) {
-						index = idx;
-					}
-					return it.src;
-				});
-
 				let pos = {};
 				try {
 					const target = e.target; // 先得到pos, 否则getThumbBoundsFn再计划，target已变化（比如弹窗transition的影响）
@@ -266,9 +252,9 @@ export default {
 
 				ImgsPreview.open({
 					visible: true,
-					dataSource: [...allImgUrls],
+					dataSource: [e.target.currentSrc],
 					opts: {
-						index,
+						index: 0,
 						history: false,
 						getThumbBoundsFn: (index) => pos
 					}
@@ -279,6 +265,7 @@ export default {
 			const { ImgsPicker = {} } = VcInstance.config;
 			if (typeof this.gallery === 'function' || (this.gallery && ImgsPicker.gallery)) {
 				e.stopPropagation();
+
 				let fn = typeof this.gallery === 'function' 
 					? this.gallery
 					: ImgsPicker.gallery;
